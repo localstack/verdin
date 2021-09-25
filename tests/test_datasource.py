@@ -1,24 +1,7 @@
-from queue import Queue
-
-import requests
 from pytest_httpserver import HTTPServer
 from werkzeug import Response
 
 from verdin.datasource import Datasource, FileDatasource
-
-
-class QueueingDatasource(Datasource):
-    def __init__(self, name, queue=None):
-        super().__init__(name, None)
-        self.queue = queue or Queue()
-
-    def append(self, records) -> requests.Response:
-        if records:
-            self.queue.put(records)
-
-        response = requests.Response()
-        response.status_code = 200
-        return response
 
 
 class TestDatasource:
