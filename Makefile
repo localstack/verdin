@@ -19,6 +19,9 @@ clean:
 clean-dist: clean
 	rm -rf dist/
 
+format:
+	($(VENV_ACTIVATE); python -m isort .; python -m black . )
+
 build: venv
 	$(VENV_ACTIVATE); python setup.py build
 
@@ -34,4 +37,4 @@ install: venv
 upload: venv test dist
 	$(VENV_ACTIVATE); pip install --upgrade twine; twine upload dist/*
 
-.PHONY: clean clean-dist
+.PHONY: clean clean-dist format
