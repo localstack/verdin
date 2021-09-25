@@ -11,4 +11,5 @@ __all__ = [
     "PipeMetadata",
     "PipeJsonData",
     "PipeJsonResponse",
+    "PipePageIterator",
 ]

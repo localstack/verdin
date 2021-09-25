@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import requests
 
@@ -45,6 +45,31 @@ class PipeJsonResponse:
         return self.result.get("data")
 
 
+PipePageIterator = Iterator[PipeJsonResponse]
+
+
+class PagedPipeQuery(PipePageIterator):
+    # TODO: allow passing of custom parameters
+
+    pipe: "Pipe"
+
+    def __init__(self, pipe: "Pipe", page_size: int = 50, start_at: int = 0):
+        self.pipe = pipe
+        self.limit = page_size
+        self.offset = start_at
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        sql = f"SELECT * FROM _ LIMIT {self.limit} OFFSET {self.offset}"
+        response = self.pipe.sql(sql)
+        if response.empty:
+            raise StopIteration()
+        self.offset += self.limit
+        return response
+
+
 class Pipe:
     """
     Model abstraction of a tinybird Pipe.
@@ -87,6 +112,9 @@ class Pipe:
             return PipeJsonResponse(response)
         else:
             raise PipeError(response)
+
+    def pages(self, page_size: int = 50, start_at: int = 0) -> PipePageIterator:
+        return PagedPipeQuery(pipe=self, page_size=page_size, start_at=start_at)
 
     def sql(self, query: str) -> PipeJsonResponse:
         """
