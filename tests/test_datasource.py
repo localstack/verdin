@@ -1,0 +1,65 @@
+from queue import Queue
+
+import requests
+from pytest_httpserver import HTTPServer
+from werkzeug import Response
+
+from verdin.datasource import Datasource, FileDatasource
+
+
+class QueueingDatasource(Datasource):
+    def __init__(self, name, queue=None):
+        super().__init__(name, None)
+        self.queue = queue or Queue()
+
+    def append(self, records) -> requests.Response:
+        if records:
+            self.queue.put(records)
+
+        response = requests.Response()
+        response.status_code = 200
+        return response
+
+
+class TestDatasource:
+    def test_to_csv(self):
+        records = [["a", "1", "{}"], ["b", "2", '{"foo":"bar","baz":"ed"}']]
+
+        csv = Datasource.to_csv(records)
+
+        assert csv == """a,1,{}\nb,2,"{""foo"":""bar"",""baz"":""ed""}"\n"""
+
+    def test_append(self, httpserver: HTTPServer):
+        ds = Datasource("mydatasource", "123456", api=httpserver.url_for("/"))
+
+        expected_data = '''a,1,{}\nb,2,"{""foo"":""bar"",""baz"":""ed""}"'''
+
+        def handler(request):
+            actual_data = request.data.decode()
+            assert expected_data in actual_data
+            return Response("", 200)
+
+        httpserver.expect_request(
+            "/v0/datasources", query_string={"name": "mydatasource", "mode": "append"}
+        ).respond_with_handler(handler)
+
+        response = ds.append([["a", "1", "{}"], ["b", "2", '{"foo":"bar","baz":"ed"}']])
+        httpserver.check()
+        assert response.ok
+
+
+class TestFileDatasource:
+    def test_append(self, tmp_path):
+        file_path = tmp_path / "myfile.csv"
+        ds = FileDatasource(str(file_path))
+
+        records = [["a", "1", "{}"], ["b", "2", '{"foo":"bar","baz":"ed"}']]
+        ds.append(records)
+
+        records = [["c", "3", "{}"]]
+        ds.append(records)
+
+        expected = """a,1,{}\nb,2,"{""foo"":""bar"",""baz"":""ed""}"\nc,3,{}\n"""
+        actual = file_path.read_text()
+
+        assert actual == expected

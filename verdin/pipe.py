@@ -48,6 +48,8 @@ class PipeJsonResponse:
 class Pipe:
     """
     Model abstraction of a tinybird Pipe.
+
+    TODO: implement csv mode
     """
 
     endpoint: str = "/v0/pipes"
@@ -61,7 +63,7 @@ class Pipe:
         self.name = name
         self.token = token
         self.version = version
-        self.resource = (api or config.API_URL).lstrip("/") + self.endpoint
+        self.resource = (api or config.API_URL).rstrip("/") + self.endpoint
 
     @property
     def canonical_name(self):

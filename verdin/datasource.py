@@ -44,7 +44,7 @@ class Datasource:
         self.name = name
         self.token = token
         self.version = version
-        self.api = (api or config.API_URL).lstrip("/") + self.endpoint
+        self.api = (api or config.API_URL).rstrip("/") + self.endpoint
 
     @property
     def canonical_name(self):
