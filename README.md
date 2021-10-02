@@ -7,7 +7,7 @@ Verdin
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
-Verdin is a [tiny bird](https://en.wikipedia.org/wiki/Verdin), and also a Python SDK for [Tinybird](https://tinybird.co)
+Verdin is a [tiny bird](https://en.wikipedia.org/wiki/Verdin), and also a [Tinybird](https://tinybird.co) SDK for Python
 .
 
 Install
