@@ -1,8 +1,9 @@
 import csv
 import io
+import json
 import logging
 import os
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
 
@@ -73,6 +74,26 @@ class Datasource:
         # TODO: use multipart
         return requests.post(url=self.api, params=query, headers=headers, data=data)
 
+    def append_ndjson(self, records: List[Dict]) -> requests.Response:
+        # TODO: generalize appending in different formats
+        query = {"name": self.canonical_name, "mode": "append", "format": "ndjson"}
+
+        headers = {"Content-Type": "application/x-ndjson; charset=utf-8"}
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}"
+
+        docs = [json.dumps(record) for record in records]
+        data = "\n".join(docs)
+
+        LOG.debug(
+            "appending %d records to %s via %s(%s)",
+            len(records),
+            self,
+            self.api,
+            query,
+        )
+        return requests.post(url=self.api, params=query, headers=headers, data=data)
+
     @staticmethod
     def to_csv(records: List[List[Any]]):
         return to_csv(records)
@@ -100,6 +121,9 @@ class FileDatasource(Datasource):
         response = requests.Response()
         response.status_code = 200
         return response
+
+    def append_ndjson(self, records: List[Dict]) -> requests.Response:
+        raise NotImplementedError
 
     def readlines(self) -> List[str]:
         with open(self.path, "r") as fd:

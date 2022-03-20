@@ -1,7 +1,7 @@
 from .client import Client
 from .datasource import Datasource, Record
 from .pipe import Pipe, PipeError, PipeJsonData, PipeJsonResponse, PipeMetadata, PipePageIterator
-from .query import OutputFormat, QueryError, SqlQuery, QueryJsonResult
+from .query import OutputFormat, QueryError, QueryJsonResult, SqlQuery
 
 __all__ = [
     "Client",
