@@ -3,6 +3,8 @@ Verdin
 
 <p>
   <a href="https://pypi.org/project/verdin/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/verdin?color=blue"></a>
+  <a href="https://github.com/localstack/verdin/actions/workflows/build.yml"><img alt="CI Status" src="https://github.com/localstack/verdin/actions/workflows/build.yml/badge.svg"></a>
+  <a href=""><img alt="Coverage status" src="https://coveralls.io/repos/github/localstack/verdin/badge.svg?branch=master"></a>
   <a href="https://img.shields.io/pypi/l/verdin.svg"><img alt="PyPI License" src="https://img.shields.io/pypi/l/verdin.svg"></a>
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
