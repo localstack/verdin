@@ -18,10 +18,27 @@ Install
 Usage
 -----
 
-### Query a Pipe
+### Run an SQL Query
 
 ```python
 # the tinybird module exposes all important tinybird concepts
+from verdin import tinybird
+
+client = tinybird.Client("p.mytoken")
+query = client.sql("select * from my_datasource__v0")
+
+# run the query with `FORMAT JSON` and receive a QueryJsonResult
+response: tinybird.QueryJsonResult = query.json()
+
+# print records returned from the pipe
+print(response.data)
+```
+
+You can also run, e.g., `query.get(format=OutputFormat.CSV)` to get the raw response with CSV data. 
+
+### Query a Pipe
+
+```python
 from verdin import tinybird
 
 client = tinybird.Client("p.mytoken")
