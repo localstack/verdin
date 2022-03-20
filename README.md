@@ -17,6 +17,11 @@ Install
 
     pip install verdin
 
+Requirements
+------------
+
+Python 3.8+
+
 Usage
 -----
 
