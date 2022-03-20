@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 class StopWorker(Exception):
     """
-    An exception that indicates to stop the the QueueingDatasourceAppender worker.
+    An exception that indicates to stop the QueueingDatasourceAppender worker.
     """
 
     marker = "__STOP__"

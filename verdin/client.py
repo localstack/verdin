@@ -1,6 +1,9 @@
+from typing import Optional
+
 from . import config
 from .datasource import Datasource
 from .pipe import Pipe
+from .query import OutputFormat, SqlQuery
 
 
 class Client:
@@ -24,3 +27,6 @@ class Client:
         Create an object representing a datasource with a given name.
         """
         return Datasource(name, token=self.token, version=version, api=self.api)
+
+    def sql(self, sql: str, format: Optional[OutputFormat] = None) -> SqlQuery:
+        return SqlQuery(sql, format=format, token=self.token, api=self.api)
