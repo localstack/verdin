@@ -12,3 +12,17 @@ include = '((verdin)/.*\.py$|tests/.*\.py$)'
 profile = 'black'
 #extend_skip = []
 line_length = 100
+
+[tool.coverage.run]
+relative_files = true
+source = [
+    "verdin/"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "return NotImplemented",
+    "def __repr__",
+]

@@ -25,7 +25,10 @@ format:
 	$(VENV_RUN); python -m isort .; python -m black .
 
 test: venv
-	$(VENV_RUN); python -m pytest tests/
+	$(VENV_RUN); python -m pytest tests
+
+test-coverage: venv
+	$(VENV_RUN); coverage run --source=verdin -m pytest tests && coverage lcov -o .coverage.lcov
 
 install: venv
 
