@@ -12,6 +12,13 @@ class TestDatasource:
 
         assert csv == """a,1,{}\nb,2,"{""foo"":""bar"",""baz"":""ed""}"\n"""
 
+    def test_to_csv_with_delimiter(self):
+        records = [["a", "1", "{}"], ["b", "2", '{"foo":"bar","baz":"ed"}']]
+
+        csv = Datasource.to_csv(records, delimiter=";")
+
+        assert csv == """a;1;{}\nb;2;"{""foo"":""bar"",""baz"":""ed""}"\n"""
+
     def test_append(self, httpserver: HTTPServer):
         ds = Datasource("mydatasource", "123456", api=httpserver.url_for("/"))
 

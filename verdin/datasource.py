@@ -15,17 +15,21 @@ Record = Union[Tuple, List[Any]]
 Records = List[Record]
 
 
-def to_csv(records: Records) -> str:
+def to_csv(records: Records, **kwargs) -> str:
     output = io.StringIO()
-    write_csv(output, records)
+    write_csv(output, records, **kwargs)
     return output.getvalue()
 
 
-def write_csv(file, records: Records):
+def write_csv(file, records: Records, **kwargs):
     # TODO: do proper type conversion here to optimize for CSV input
     #  see: https://guides.tinybird.co/guide/fine-tuning-csvs-for-fast-ingestion
 
-    writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
+    if "delimiter" in kwargs:
+        if kwargs["delimiter"] is None:
+            del kwargs["delimiter"]
+
+    writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL, lineterminator="\n", **kwargs)
 
     for record in records:
         writer.writerow(record)
@@ -54,25 +58,30 @@ class Datasource:
         else:
             return self.name
 
-    def append(self, records: List[Record]) -> requests.Response:
+    def append(self, records: List[Record], *args, **kwargs) -> requests.Response:
         # TODO: replicate tinybird API concepts instead of returning Response
-        query = {"name": self.canonical_name, "mode": "append"}
+        return self.append_csv(records, *args, **kwargs)
+
+    def append_csv(self, records: List[Record], delimiter: str = None) -> requests.Response:
+        params = {"name": self.canonical_name, "mode": "append"}
+        if delimiter:
+            params["dialect_delimiter"] = ","
 
         headers = {"Content-Type": "text/html; charset=utf-8"}
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
 
-        data = self.to_csv(records)
+        data = self.to_csv(records, delimiter=delimiter)
 
         LOG.debug(
-            "appending %d records to %s via %s(%s)",
+            "appending %d csv records to %s via %s(%s)",
             len(records),
             self,
             self.api,
-            query,
+            params,
         )
         # TODO: use multipart
-        return requests.post(url=self.api, params=query, headers=headers, data=data)
+        return requests.post(url=self.api, params=params, headers=headers, data=data)
 
     def append_ndjson(self, records: List[Dict]) -> requests.Response:
         # TODO: generalize appending in different formats
@@ -86,7 +95,7 @@ class Datasource:
         data = "\n".join(docs)
 
         LOG.debug(
-            "appending %d records to %s via %s(%s)",
+            "appending %d ndjson records to %s via %s(%s)",
             len(records),
             self,
             self.api,
@@ -95,8 +104,8 @@ class Datasource:
         return requests.post(url=self.api, params=query, headers=headers, data=data)
 
     @staticmethod
-    def to_csv(records: List[List[Any]]):
-        return to_csv(records)
+    def to_csv(records: List[List[Any]], **kwargs):
+        return to_csv(records, **kwargs)
 
     def __str__(self):
         return f"Datasource({self.canonical_name})"
