@@ -62,10 +62,10 @@ class Datasource:
         # TODO: replicate tinybird API concepts instead of returning Response
         return self.append_csv(records, *args, **kwargs)
 
-    def append_csv(self, records: List[Record], delimiter: str = None) -> requests.Response:
+    def append_csv(self, records: List[Record], delimiter: str = ",") -> requests.Response:
         params = {"name": self.canonical_name, "mode": "append"}
         if delimiter:
-            params["dialect_delimiter"] = ","
+            params["dialect_delimiter"] = delimiter
 
         headers = {"Content-Type": "text/html; charset=utf-8"}
         if self.token:
