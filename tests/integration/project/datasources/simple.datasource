@@ -1,0 +1,9 @@
+DESCRIPTION >
+    Simple Data Source
+
+SCHEMA >
+    id UUID `json:$.id`,
+    timestamp DateTime64(6) `json:$.created`,
+    value String    `json:$.value`
+
+ENGINE "MergeTree"

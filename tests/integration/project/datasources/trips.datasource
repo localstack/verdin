@@ -1,0 +1,29 @@
+DESCRIPTION >
+    Generated from https://tbrd.co/taxi_data.parquet
+
+SCHEMA >
+    VendorID Nullable(Int32) `json:$.VendorID`,
+    tpep_pickup_datetime Nullable(DateTime64(6)) `json:$.tpep_pickup_datetime`,
+    tpep_dropoff_datetime Nullable(DateTime64(6)) `json:$.tpep_dropoff_datetime`,
+    passenger_count Nullable(Int64) `json:$.passenger_count`,
+    trip_distance Nullable(Float64) `json:$.trip_distance`,
+    RatecodeID Nullable(Int64) `json:$.RatecodeID`,
+    store_and_fwd_flag Nullable(String) `json:$.store_and_fwd_flag`,
+    PULocationID Nullable(Int32) `json:$.PULocationID`,
+    DOLocationID Nullable(Int32) `json:$.DOLocationID`,
+    payment_type Nullable(Int64) `json:$.payment_type`,
+    fare_amount Nullable(Float64) `json:$.fare_amount`,
+    extra Nullable(Float64) `json:$.extra`,
+    mta_tax Nullable(Float64) `json:$.mta_tax`,
+    tip_amount Nullable(Float64) `json:$.tip_amount`,
+    tolls_amount Nullable(Float64) `json:$.tolls_amount`,
+    improvement_surcharge Nullable(Float64) `json:$.improvement_surcharge`,
+    total_amount Nullable(Float64) `json:$.total_amount`,
+    congestion_surcharge Nullable(Float64) `json:$.congestion_surcharge`,
+    Airport_fee Nullable(Float64) `json:$.Airport_fee`,
+    cbd_congestion_fee Nullable(Float64) `json:$.cbd_congestion_fee`
+
+ENGINE "MergeTree"
+# ENGINE_SORTING_KEY "user_id, timestamp"
+# ENGINE_TTL "timestamp + toIntervalDay(60)"
+# Learn more at https://www.tinybird.co/docs/forward/dev-reference/datafiles/datasource-files

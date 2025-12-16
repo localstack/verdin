@@ -37,6 +37,7 @@ dev = [
     "coverage[toml]>=5.0",
     "pytest-cov>=2.7.1",
     "coveralls",
+    "tinybird",
 ]
 
 [tool.hatch.version]
