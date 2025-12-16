@@ -1,17 +1,50 @@
 # Verdin project configuration
 [build-system]
-requires = ['setuptools', 'wheel']
-build-backend = "setuptools.build_meta"
+requires = ['hatchling']
+build-backend = "hatchling.build"
 
-[tool.black]
-line_length = 100
-include = '((verdin)/.*\.py$|tests/.*\.py$)'
-#extend_exclude = '()'
+[project]
+name = "verdin"
+authors = [
+    { name = "Thomas Rausch", email = "info@localstack.cloud" }
+]
+description = "A Python SDK for Tinybird"
+readme = "README.md"
+license = "Apache-2.0"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities"
+]
+requires-python = ">=3.10"
+dynamic = ["version"]
 
-[tool.isort]
-profile = 'black'
-#extend_skip = []
-line_length = 100
+[project.urls]
+Repository = "https://github.com/localstack/verdin"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.4",
+    "ruff==0.9.1",
+    "pytest_httpserver>=1.0.1",
+    "coverage[toml]>=5.0",
+    "pytest-cov>=2.7.1",
+    "coveralls",
+]
+
+[tool.hatch.version]
+path = "verdin/__init__.py"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
 
 [tool.coverage.run]
 relative_files = true

@@ -6,9 +6,8 @@ VENV_RUN = . $(VENV_ACTIVATE)
 
 venv: $(VENV_ACTIVATE)
 
-$(VENV_ACTIVATE): setup.cfg setup.py pyproject.toml
+$(VENV_ACTIVATE): pyproject.toml
 	test -d $(VENV_DIR) || $(VENV_BIN) $(VENV_DIR)
-	$(VENV_RUN); pip install --upgrade setuptools wheel
 	$(VENV_RUN); pip install -e ".[dev]"
 	touch $(VENV_DIR)/bin/activate
 
@@ -16,26 +15,30 @@ clean:
 	rm -rf build/
 	rm -rf .eggs/
 	rm -rf *.egg-info/
-	rm -rf dist/
-
-clean-venv:
 	rm -rf .venv
 
-format:
-	$(VENV_RUN); python -m isort .; python -m black .
+clean-dist: clean
+	rm -rf dist/
+
+lint: venv
+	$(VENV_RUN); python -m ruff check .
+
+format: venv
+	$(VENV_RUN); python -m ruff format . && python -m ruff check . --fix
 
 test: venv
-	$(VENV_RUN); python -m pytest tests
+	$(VENV_RUN); python -m pytest
 
 test-coverage: venv
 	$(VENV_RUN); coverage run --source=verdin -m pytest tests && coverage lcov -o .coverage.lcov
 
-install: venv
-
 dist: venv
-	$(VENV_RUN); python setup.py sdist bdist_wheel
+	$(VENV_RUN); python -m build
+
+install: venv
+	$(VENV_RUN); pip install -e .
 
 upload: venv
 	$(VENV_RUN); pip install --upgrade twine; twine upload dist/*
 
-.PHONY: clean venv-clean format
+.PHONY: clean clean-dist format test test-coverage upload
