@@ -3,11 +3,14 @@ import io
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import requests
 
 from . import config
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsWrite
 
 LOG = logging.getLogger(__name__)
 
@@ -16,12 +19,26 @@ Records = List[Record]
 
 
 def to_csv(records: Records, **kwargs) -> str:
+    """
+    Convert the given records to CSV using a CSV writer, and return them as a single string.
+
+    :param records: The records to convert to CSV.
+    :param kwargs: Args to be passed to ``csv.writer``.
+    :return: A string representing the CSV
+    """
     output = io.StringIO()
     write_csv(output, records, **kwargs)
     return output.getvalue()
 
 
-def write_csv(file, records: Records, **kwargs):
+def write_csv(file: "SupportsWrite[str]", records: Records, **kwargs):
+    """
+    Converts the given records to CSV and writes them to the given file.
+
+    :param file: The file passed to the CSV writer.
+    :param records: The records to convert to CSV.
+    :param kwargs: Args to be passed to ``csv.writer``.
+    """
     # TODO: do proper type conversion here to optimize for CSV input
     #  see: https://guides.tinybird.co/guide/fine-tuning-csvs-for-fast-ingestion
 
@@ -45,24 +62,39 @@ class Datasource:
     name: str
     version: Optional[int]
 
-    def __init__(self, name, token, version: int = None, api=None) -> None:
+    def __init__(self, name, token, version: int = None, api: str = None) -> None:
         self.name = name
         self.token = token
         self.version = version
         self.api = (api or config.API_URL).rstrip("/") + self.endpoint
 
     @property
-    def canonical_name(self):
+    def canonical_name(self) -> str:
+        """
+        Returns the name of the table that can be queried. If a version is specified, the name will be suffixed with
+        ``__v<version>``. Otherwise, this just returns the name. Note that versions are discouraged in the current
+        tinybird workflows.
+
+        :return: The canonical name of the table that can be used in queries
+        """
         if self.version is not None:
             return f"{self.name}__v{self.version}"
         else:
             return self.name
 
-    def append(self, records: List[Record], *args, **kwargs) -> requests.Response:
+    def append(self, records: Records, *args, **kwargs) -> requests.Response:
+        """Calls ``append_csv``."""
         # TODO: replicate tinybird API concepts instead of returning Response
         return self.append_csv(records, *args, **kwargs)
 
-    def append_csv(self, records: List[Record], delimiter: str = ",") -> requests.Response:
+    def append_csv(self, records: Records, delimiter: str = ",") -> requests.Response:
+        """
+        Makes a POST request to the datasource using mode=append with CSV data. This appends data to the table.
+
+        :param records: List of records to append. The will be converted to CSV using the provided delimiter.
+        :param delimiter: Optional delimiter (defaults to ",")
+        :return: The HTTP response
+        """
         params = {"name": self.canonical_name, "mode": "append"}
         if delimiter:
             params["dialect_delimiter"] = delimiter
@@ -84,6 +116,12 @@ class Datasource:
         return requests.post(url=self.api, params=params, headers=headers, data=data)
 
     def append_ndjson(self, records: List[Dict]) -> requests.Response:
+        """
+        Makes a POST request to the datasource using mode=append with ndjson data. This appends data to the table.
+
+        :param records: List of JSON records to append. The will be converted to NDJSON using ``json.dumps``
+        :return: The HTTP response
+        """
         # TODO: generalize appending in different formats
         query = {"name": self.canonical_name, "mode": "append", "format": "ndjson"}
 
@@ -130,14 +168,16 @@ class Datasource:
 
 
 class FileDatasource(Datasource):
-    # for debugging/development purposes
+    """
+    Datasource that writes into a file, used for testing and development purposes.
+    """
 
     def __init__(self, path: str):
         name = os.path.basename(path)
         super().__init__(name, None)
         self.path = path
 
-    def append(self, records: Records) -> requests.Response:
+    def append_csv(self, records: Records, *args, **kwargs) -> requests.Response:
         if records:
             with open(self.path, "a") as fd:
                 write_csv(fd, records)
@@ -152,3 +192,6 @@ class FileDatasource(Datasource):
     def readlines(self) -> List[str]:
         with open(self.path, "r") as fd:
             return fd.readlines()
+
+    def truncate(self):
+        raise NotImplementedError
