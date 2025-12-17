@@ -1,0 +1,10 @@
+DESCRIPTION >
+    Simple Key-Value Data Source
+
+SCHEMA >
+    id          UUID            `json:$.Id`,
+    timestamp   DateTime64(6)   `json:$.Timestamp`,
+    key         String          `json:$.Key`,
+    value       String          `json:$.Value`
+
+ENGINE "MergeTree"
