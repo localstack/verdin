@@ -4,16 +4,6 @@ from verdin.api.pipes import PipeNotFoundError
 
 
 class TestPipesApi:
-    @pytest.fixture(autouse=True)
-    def _truncate_datasource(self, client):
-        # make sure to truncate "simple" datasource and its quarantine table before and after each test
-
-        client.api.datasources.truncate("simple")
-        client.api.datasources.truncate("simple_quarantine")
-        yield
-        client.api.datasources.truncate("simple")
-        client.api.datasources.truncate("simple_quarantine")
-
     def test_list(self, client):
         response = client.api.pipes.list(
             attrs=["id", "name"],

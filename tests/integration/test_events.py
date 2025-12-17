@@ -4,16 +4,6 @@ from tests.utils import retry
 
 
 class TestEventsApi:
-    @pytest.fixture(autouse=True)
-    def _truncate_datasource(self, client):
-        # make sure to truncate "simple" datasource and its quarantine table before and after each test
-
-        client.api.datasources.truncate("simple")
-        client.api.datasources.truncate("simple_quarantine")
-        yield
-        client.api.datasources.truncate("simple")
-        client.api.datasources.truncate("simple_quarantine")
-
     @pytest.mark.parametrize("compress", [True, False])
     def test_events(self, client, compress):
         events = client.api.events

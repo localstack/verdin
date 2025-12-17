@@ -3,6 +3,7 @@ import time
 
 import pytest
 
+from verdin.api import ApiError
 from verdin.client import Client
 from verdin.test.cli import TinybirdCli
 from verdin.test.container import TinybirdLocalContainer
@@ -64,3 +65,23 @@ def deployed_project(cli):
     time.sleep(5)
     cli.deploy(wait=True, auto=True)
     yield
+
+
+@pytest.fixture(autouse=True)
+def _truncate_datasource(self, client):
+    # make sure to truncate "simple" datasource and its quarantine table before and after each test
+
+    client.api.datasources.truncate("simple")
+    try:
+        # also truncate the quarantine table if it exists
+        client.api.datasources.truncate("simple_quarantine")
+    except ApiError:
+        pass
+
+    yield
+    client.api.datasources.truncate("simple")
+
+    try:
+        client.api.datasources.truncate("simple_quarantine")
+    except ApiError:
+        pass

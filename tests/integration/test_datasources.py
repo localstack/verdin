@@ -8,16 +8,6 @@ from tests.utils import retry
 
 
 class TestDataSourcesApi:
-    @pytest.fixture(autouse=True)
-    def _truncate_datasource(self, client):
-        # make sure to truncate "simple" datasource and its quarantine table before and after each test
-
-        client.api.datasources.truncate("simple")
-        client.api.datasources.truncate("simple_quarantine")
-        yield
-        client.api.datasources.truncate("simple")
-        client.api.datasources.truncate("simple_quarantine")
-
     def test_list(self, client):
         response = client.api.datasources.list()
 
