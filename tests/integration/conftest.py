@@ -7,7 +7,7 @@ from verdin.client import Client
 from verdin.test.cli import TinybirdCli
 from verdin.test.container import TinybirdLocalContainer
 
-# os.environ["SKIP_TINYBIRD_LOCAL_START"] = "1"
+os.environ["SKIP_TINYBIRD_LOCAL_START"] = "1"
 
 
 def _is_skip_tinybird_local_start() -> bool:

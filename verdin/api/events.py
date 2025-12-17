@@ -12,11 +12,11 @@ LOG = logging.getLogger(__name__)
 class EventsResponse(ApiResponse):
     @property
     def successful_rows(self) -> int:
-        return self.json().get("successful_rows")
+        return self.json.get("successful_rows")
 
     @property
     def quarantined_rows(self) -> int:
-        return self.json().get("quarantined_rows")
+        return self.json.get("quarantined_rows")
 
 
 class EventsApi(Api):

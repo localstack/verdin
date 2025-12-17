@@ -148,29 +148,29 @@ class DataSourceAppendInfo(TypedDict):
 class ListDataSourcesResponse(ApiResponse):
     @property
     def datasources(self) -> list[DataSourceInfo]:
-        return self.json().get("datasources", [])
+        return self.json.get("datasources", [])
 
 
 class AppendDataResponse(ApiResponse):
     @property
     def datasource(self) -> DataSourceAppendInfo:
-        return self.json().get("datasource", {})
+        return self.json.get("datasource", {})
 
     @property
     def import_id(self) -> str:
-        return self.json().get("import_id")
+        return self.json.get("import_id")
 
     @property
     def invalid_lines(self) -> int:
-        return self.json().get("invalid_lines")
+        return self.json.get("invalid_lines")
 
     @property
     def quarantine_rows(self) -> int:
-        return self.json().get("quarantine_rows")
+        return self.json.get("quarantine_rows")
 
     @property
     def error(self) -> str | None:
-        error = self.json().get("error")
+        error = self.json.get("error")
         if not error:
             return None
         return error
@@ -201,7 +201,7 @@ class GetDataSourceInformationResponse(ApiResponse):
         }
 
         """
-        return self.json()
+        return self.json
 
 
 class DataSourcesApi(Api):

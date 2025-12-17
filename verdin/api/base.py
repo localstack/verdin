@@ -19,6 +19,25 @@ class ApiResponse:
         self._response = response
         self._json: dict | None = None  # cache for json response
 
+    @property
+    def text(self) -> str:
+        """
+        Returns the body of the HTTP response as a string.
+
+        :return: The response body as a string.
+        """
+        return self._response.text
+
+    @property
+    def content(self) -> bytes:
+        """
+        Returns the body of the HTTP response as bytes.
+
+        :return: The response body as a bytes.
+        """
+        return self._response.content
+
+    @property
     def json(self) -> dict:
         """
         Parses the JSON response and returns a dictionary. It caches the result so that later calls to this method

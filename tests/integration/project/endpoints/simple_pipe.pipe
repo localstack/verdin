@@ -1,0 +1,14 @@
+VERSION 0
+
+DESCRIPTION >
+    Endpoint to select specific keys from the table
+
+NODE endpoint
+SQL >
+    %
+    SELECT *
+    FROM simple
+    WHERE 1=1
+        {% if defined(key) %} AND key == {{ String(key) }} {% end %}
+
+TYPE ENDPOINT

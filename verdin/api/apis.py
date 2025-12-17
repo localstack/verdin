@@ -1,5 +1,6 @@
 from .datasources import DataSourcesApi
 from .events import EventsApi
+from .pipes import PipesApi
 
 
 class Apis:
@@ -21,3 +22,7 @@ class Apis:
     @property
     def datasources(self) -> DataSourcesApi:
         return DataSourcesApi(self._token, self._host)
+
+    @property
+    def pipes(self) -> PipesApi:
+        return PipesApi(self._token, self._host)
