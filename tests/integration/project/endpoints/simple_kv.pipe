@@ -1,0 +1,14 @@
+VERSION 0
+
+DESCRIPTION >
+    Endpoint to select unique key/value pairs from simple
+
+NODE endpoint
+SQL >
+    %
+    SELECT key, value
+    FROM simple
+    ORDER BY key, timestamp desc
+    LIMIT 1 by key
+
+TYPE ENDPOINT

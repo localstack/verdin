@@ -103,6 +103,21 @@ class Datasource:
         )
         return requests.post(url=self.api, params=query, headers=headers, data=data)
 
+    def truncate(self):
+        """
+        Truncate the datasource which removes all records in the table.
+        """
+        headers = {}
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}"
+
+        url = f"{self.api}/{self.canonical_name}/truncate"
+        LOG.debug(
+            "truncating table %s",
+            self.canonical_name,
+        )
+        requests.post(url=url, headers=headers)
+
     @staticmethod
     def to_csv(records: List[List[Any]], **kwargs):
         return to_csv(records, **kwargs)

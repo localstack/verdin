@@ -1,9 +1,12 @@
 """Wrapper around the Tinybird CLI to make available the main commands programmatically."""
 
 import dataclasses
+import logging
 import os
 import re
 import subprocess
+
+LOG = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -11,6 +14,12 @@ class Token:
     id: str
     name: str
     token: str
+
+
+class CliError(Exception):
+    def __init__(self, output: str, orig: subprocess.SubprocessError) -> None:
+        super().__init__(output)
+        self.orig = orig
 
 
 class TinybirdCli:
@@ -139,7 +148,6 @@ class TinybirdCli:
                 env=self._env(),
             )
         except subprocess.CalledProcessError as e:
-            print(">>> ERROR", e.returncode, e.output)
-            raise e
+            raise CliError(f"Failed to deploy project:\n{e.output}", e) from e
 
         return output
