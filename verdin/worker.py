@@ -1,3 +1,9 @@
+"""
+This module contains a worker that reads batches of records from a Queue and appends them to a Datasource. It provides
+an opinionated way to ingest data into tinybird from a python process. Note this worker does not use the ``/v0/events``
+API, but instead uses the datasource's append functionality, which has higher rate limits.
+"""
+
 import logging
 import multiprocessing
 import time

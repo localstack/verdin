@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Iterator, Optional
 
 import requests
 
@@ -7,41 +7,68 @@ from . import config
 
 LOG = logging.getLogger(__name__)
 
-PipeMetadata = List[Tuple[str, str]]
-PipeJsonData = List[Dict[str, Any]]
+PipeMetadata = list[tuple[str, str]]
+PipeJsonData = list[dict[str, Any]]
 
 
 class PipeError(Exception):
+    """
+    Wrapper of the HTTP response returned by a Pipe query if the HTTP response is not a 2XX code.
+    """
+
     response: requests.Response
 
-    def __init__(self, response) -> None:
+    def __init__(self, response: requests.Response) -> None:
         self.response = response
-        self.json: Dict = response.json()
+        self.json: dict = response.json()
         super().__init__(self.description)
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self.json.get("error")
 
 
 class PipeJsonResponse:
-    response: requests.Response
-    result: Dict
+    """
+    Wrapper of the HTTP response returned by a Pipe query.
+    """
 
-    def __init__(self, response):
+    response: requests.Response
+    result: dict
+
+    def __init__(self, response: requests.Response):
         self.response = response
         self.result = response.json()
 
     @property
-    def empty(self):
+    def empty(self) -> bool:
+        """
+        A property to check if the data in the result is empty.
+
+        This property evaluates whether the "data" field within the "result"
+        attribute is empty.
+
+        :return: Returns True if the "data" field in "result" is missing or empty,
+            otherwise returns False.
+        """
         return not self.result.get("data")
 
     @property
     def meta(self) -> PipeMetadata:
+        """
+        Returns the PipeMetadata from the query, which includes attributes and their types.
+
+        :return: The PipeMetadata
+        """
         return [(t["name"], t["type"]) for t in self.result.get("meta", [])]
 
     @property
     def data(self) -> PipeJsonData:
+        """
+        Returns the data from the query, which is a list of dictionaries representing the rows of the query result.
+
+        :return: The PipeJsonData
+        """
         return self.result.get("data")
 
 
@@ -83,7 +110,7 @@ class Pipe:
     version: Optional[int]
     resource: str
 
-    def __init__(self, name, token, version: int = None, api=None) -> None:
+    def __init__(self, name, token, version: int = None, api: str = None) -> None:
         super().__init__()
         self.name = name
         self.token = token
@@ -91,18 +118,39 @@ class Pipe:
         self.resource = (api or config.API_URL).rstrip("/") + self.endpoint
 
     @property
-    def canonical_name(self):
+    def canonical_name(self) -> str:
+        """
+        Returns the name of the pipe that can be queried. If a version is specified, the name will be suffixed with
+        ``__v<version>``. Otherwise, this just returns the name. Note that versions are discouraged in the current
+        tinybird workflows.
+
+        :return: The canonical name of the pipe that can be used in queries
+        """
         if self.version is not None:
             return f"{self.name}__v{self.version}"
         else:
             return self.name
 
     @property
-    def pipe_url(self):
+    def pipe_url(self) -> str:
+        """
+        Returns the API URL of this pipe. It's something like ``https://api.tinybird.co/v0/pipes/my_pipe.json``.
+
+        :return: The Pipe API URL
+        """
         return self.resource + "/" + self.canonical_name + ".json"
 
-    def query(self, params=None) -> PipeJsonResponse:
-        params = params or dict()
+    def query(self, params: dict[str, str] = None) -> PipeJsonResponse:
+        """
+        Query the pipe endpoint using the given dynamic parameters. Note that the pipe needs to be exposed as an
+        endpoint.
+
+        See: https://www.tinybird.co/docs/forward/work-with-data/query-parameters#use-pipes-api-endpoints-with-dynamic-parameters
+
+        :param params: The dynamic parameters of the pipe and the values for your query
+        :return: a PipeJsonResponse containing the result of the query
+        """
+        params = params or {}
         if "token" not in params and self.token:
             params["token"] = self.token
 
@@ -114,6 +162,15 @@ class Pipe:
             raise PipeError(response)
 
     def pages(self, page_size: int = 50, start_at: int = 0) -> PipePageIterator:
+        """
+        Returns an iterator over the pipe's data pages. Each page contains ``page_size`` records.
+
+        TODO: currently we don't support dynamic parameters with paged queries
+
+        :param page_size: The size of each page (default 50)
+        :param start_at: The offset at which to start (default 0)
+        :return:
+        """
         return PagedPipeQuery(pipe=self, page_size=page_size, start_at=start_at)
 
     def sql(self, query: str) -> PipeJsonResponse:
@@ -123,6 +180,9 @@ class Pipe:
             pipe.sql("select count() from _")
 
         See https://docs.tinybird.co/api-reference/query-api.html
+
+        :param query: The SQL query to run
+        :return: The result of the query
         """
         headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
         params = {"q": query}
