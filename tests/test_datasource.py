@@ -31,7 +31,12 @@ class TestDatasource:
 
         httpserver.expect_request(
             "/v0/datasources",
-            query_string={"name": "mydatasource", "mode": "append", "dialect_delimiter": ","},
+            query_string={
+                "name": "mydatasource",
+                "mode": "append",
+                "dialect_delimiter": ",",
+                "format": "csv",
+            },
         ).respond_with_handler(handler)
 
         response = ds.append([["a", "1", "{}"], ["b", "2", '{"foo":"bar","baz":"ed"}']])

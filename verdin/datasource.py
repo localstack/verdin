@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 import requests
 
 from . import config
+from .api.datasources import DataSourcesApi
+from .api.events import EventsApi, EventsResponse
 
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
@@ -66,7 +68,12 @@ class Datasource:
         self.name = name
         self.token = token
         self.version = version
-        self.api = (api or config.API_URL).rstrip("/") + self.endpoint
+        self._host = (api or config.API_URL).rstrip("/")
+        self.api = self._host + self.endpoint
+
+        # API clients used to make the actual API calls
+        self._events_api = EventsApi(token, self._host)
+        self._datasources_api = DataSourcesApi(token, self._host)
 
     @property
     def canonical_name(self) -> str:
@@ -82,6 +89,24 @@ class Datasource:
         else:
             return self.name
 
+    def send_events(
+        self, records: list[dict], wait: bool = False, json_encoder: type = None
+    ) -> EventsResponse:
+        """
+        Uses the ``/v0/events`` API endpoint to send JSON data to the datasource.
+
+        :param records: List of JSON records to append. Records will be converted to NDJSON using ``json.dumps``
+        :param wait: 'false' by default. Set to 'true' to wait until the write is acknowledged by the database.
+            Enabling this flag makes it possible to retry on database errors, but it introduces additional latency.
+            It's recommended to enable it in use cases in which data loss avoidance is critical. Disable it otherwise.
+        :param json_encoder: The JSON Encoder class passed to ``json.dumps``. Defaults to ``json.JSONEncoder``.
+        :return: The EventsResponse from the ``EventsApi``.
+        :raises ApiError: If the request failed
+        """
+        return self._events_api.send(
+            self.canonical_name, records=records, wait=wait, json_encoder=json_encoder
+        )
+
     def append(self, records: Records, *args, **kwargs) -> requests.Response:
         """Calls ``append_csv``."""
         # TODO: replicate tinybird API concepts instead of returning Response
@@ -91,70 +116,60 @@ class Datasource:
         """
         Makes a POST request to the datasource using mode=append with CSV data. This appends data to the table.
 
-        :param records: List of records to append. The will be converted to CSV using the provided delimiter.
+        :param records: List of records to append. They will be converted to CSV using the provided delimiter.
         :param delimiter: Optional delimiter (defaults to ",")
         :return: The HTTP response
         """
-        params = {"name": self.canonical_name, "mode": "append"}
-        if delimiter:
-            params["dialect_delimiter"] = delimiter
-
-        headers = {"Content-Type": "text/html; charset=utf-8"}
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
 
         data = self.to_csv(records, delimiter=delimiter)
 
         LOG.debug(
-            "appending %d csv records to %s via %s(%s)",
+            "appending %d csv records to %s via %s",
             len(records),
             self,
             self.api,
-            params,
         )
-        # TODO: use multipart
-        return requests.post(url=self.api, params=params, headers=headers, data=data)
+
+        response = self._datasources_api.append(
+            name=self.canonical_name,
+            dialect_delimiter=delimiter,
+            format="csv",
+            data=data,
+        )
+
+        return response._response
 
     def append_ndjson(self, records: List[Dict]) -> requests.Response:
         """
         Makes a POST request to the datasource using mode=append with ndjson data. This appends data to the table.
 
-        :param records: List of JSON records to append. The will be converted to NDJSON using ``json.dumps``
+        :param records: List of JSON records to append. They will be converted to NDJSON using ``json.dumps``
         :return: The HTTP response
         """
-        # TODO: generalize appending in different formats
-        query = {"name": self.canonical_name, "mode": "append", "format": "ndjson"}
 
-        headers = {"Content-Type": "application/x-ndjson; charset=utf-8"}
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
-
-        docs = [json.dumps(record) for record in records]
-        data = "\n".join(docs)
+        def _ndjson_iterator():
+            for record in records:
+                yield json.dumps(record) + "\n"
 
         LOG.debug(
-            "appending %d ndjson records to %s via %s(%s)",
+            "appending %d ndjson records to %s via %s",
             len(records),
             self,
             self.api,
-            query,
         )
-        return requests.post(url=self.api, params=query, headers=headers, data=data)
+        response = self._datasources_api.append(
+            name=self.canonical_name,
+            format="ndjson",
+            data=_ndjson_iterator(),
+        )
+
+        return response._response
 
     def truncate(self):
         """
         Truncate the datasource which removes all records in the table.
         """
-        headers = {}
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
-
-        url = f"{self.api}/{self.canonical_name}/truncate"
-        LOG.debug(
-            "truncating table %s",
-            self.canonical_name,
-        )
-        requests.post(url=url, headers=headers)
+        self._datasources_api.truncate(name=self.canonical_name)
 
     @staticmethod
     def to_csv(records: List[List[Any]], **kwargs):

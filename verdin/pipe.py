@@ -4,6 +4,8 @@ from typing import Any, Iterator, Optional
 import requests
 
 from . import config
+from .api import ApiError
+from .api.pipes import PipesApi
 
 LOG = logging.getLogger(__name__)
 
@@ -117,6 +119,8 @@ class Pipe:
         self.version = version
         self.resource = (api or config.API_URL).rstrip("/") + self.endpoint
 
+        self._pipes_api = PipesApi(token, host=(api or config.API_URL).rstrip("/"))
+
     @property
     def canonical_name(self) -> str:
         """
@@ -150,16 +154,15 @@ class Pipe:
         :param params: The dynamic parameters of the pipe and the values for your query
         :return: a PipeJsonResponse containing the result of the query
         """
-        params = params or {}
-        if "token" not in params and self.token:
-            params["token"] = self.token
-
-        response = requests.get(self.pipe_url, params=params)
-
-        if response.ok:
-            return PipeJsonResponse(response)
-        else:
-            raise PipeError(response)
+        try:
+            response = self._pipes_api.query(
+                self.canonical_name,
+                parameters=params,
+                format="json",
+            )
+            return PipeJsonResponse(response._response)
+        except ApiError as e:
+            raise PipeError(e._response)
 
     def pages(self, page_size: int = 50, start_at: int = 0) -> PipePageIterator:
         """
@@ -184,15 +187,11 @@ class Pipe:
         :param query: The SQL query to run
         :return: The result of the query
         """
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-        params = {"q": query}
-
-        response = requests.get(self.pipe_url, headers=headers, params=params)
-
-        if response.ok:
-            return PipeJsonResponse(response)
-        else:
-            raise PipeError(response)
+        try:
+            response = self._pipes_api.query(self.canonical_name, query=query, format="json")
+            return PipeJsonResponse(response._response)
+        except ApiError as e:
+            raise PipeError(e._response)
 
     def __str__(self):
         return f"Pipe({self.canonical_name})"
