@@ -68,7 +68,7 @@ def deployed_project(cli):
 
 
 @pytest.fixture(autouse=True)
-def _truncate_datasource(self, client):
+def _truncate_datasource(client):
     # make sure to truncate "simple" datasource and its quarantine table before and after each test
 
     client.api.datasources.truncate("simple")
