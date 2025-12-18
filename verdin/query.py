@@ -5,6 +5,8 @@ from typing import Any, Optional, TypedDict
 import requests
 
 from . import config
+from .api import ApiError
+from .api.query import QueryApi
 
 LOG = logging.getLogger(__name__)
 
@@ -111,7 +113,9 @@ class SqlQuery:
         self.sql = sql
         self.format = format or OutputFormat.JSON
         self.token = token
-        self.api = (api or config.API_URL).rstrip("/") + self.endpoint
+        host = (api or config.API_URL).rstrip("/")
+        self.api = host + self.endpoint
+        self._query_api = QueryApi(token=token, host=host)
 
     def get(self, format: Optional[OutputFormat] = None) -> requests.Response:
         """
@@ -122,23 +126,21 @@ class SqlQuery:
         :param format: Overwrite the default output format set in the constructor.
         :return: the HTTP response
         """
-        query = {"q": self._sql_with_format(format or self.format)}
-
-        headers = {"Content-Type": "text/html; charset=utf-8"}
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
 
         LOG.debug(
             "querying %s with query: %s",
             self.api,
-            query,
+            self.sql,
         )
-        response = requests.get(url=self.api, params=query, headers=headers)
 
-        if not response.ok:
-            raise QueryError(response)
-
-        return response
+        try:
+            response = self._query_api.query(
+                self.sql,
+                format=(format or self.format).value,
+            )
+            return response._response
+        except ApiError as e:
+            raise QueryError(response=e._response) from e
 
     def json(self) -> QueryJsonResult:
         """
@@ -149,16 +151,3 @@ class SqlQuery:
         response = self.get(OutputFormat.JSON)
 
         return QueryJsonResult(response)
-
-    def _sql_with_format(self, output_format: Optional[OutputFormat] = None) -> str:
-        """
-        Returns a formatted SQL query with the given output format. If no output format is specified, the query is
-        returned as is.
-
-        :param output_format: The output format to use (suffixes ``FORMAT <format>`` to the query)
-        :return: An SQL string
-        """
-        # TODO: handle potentially already existing FORMAT string
-        if not output_format:
-            return self.sql
-        return self.sql + f" FORMAT {output_format.value}"
