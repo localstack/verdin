@@ -121,6 +121,7 @@ The following APIs are available:
 * `/v0/datasources`: `client.api.datasources`
 * `/v0/events`: `client.api.events`
 * `/v0/pipes`: `client.api.pipes`
+* `/v0/sql`: `client.api.query`
 * `/v0/tokens`: `client.api.tokens`
 * `/v0/variables`: `client.api.variables`
 
