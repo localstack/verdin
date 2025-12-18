@@ -9,8 +9,7 @@ Verdin
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
-Verdin is a [tiny bird](https://en.wikipedia.org/wiki/Verdin), and also a [Tinybird](https://tinybird.co) SDK for Python
-.
+Verdin is a [tiny bird](https://en.wikipedia.org/wiki/Verdin), and also a [Tinybird](https://tinybird.co) SDK for Python.
 
 Install
 -------
@@ -127,6 +126,9 @@ The following APIs are available:
 
 Note that for some (datasources, pipes, tokens), manipulation operations are not implemented as they are typically done
 through tb deployments and not through the API.
+
+Also note that API clients do not take care of retries or rate limiting. The caller is expected to handle fault
+tolerance.
 
 #### Example (Querying a pipe)
 
