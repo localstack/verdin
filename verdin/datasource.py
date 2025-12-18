@@ -116,7 +116,7 @@ class Datasource:
         """
         Makes a POST request to the datasource using mode=append with CSV data. This appends data to the table.
 
-        :param records: List of records to append. The will be converted to CSV using the provided delimiter.
+        :param records: List of records to append. They will be converted to CSV using the provided delimiter.
         :param delimiter: Optional delimiter (defaults to ",")
         :return: The HTTP response
         """
@@ -143,7 +143,7 @@ class Datasource:
         """
         Makes a POST request to the datasource using mode=append with ndjson data. This appends data to the table.
 
-        :param records: List of JSON records to append. The will be converted to NDJSON using ``json.dumps``
+        :param records: List of JSON records to append. They will be converted to NDJSON using ``json.dumps``
         :return: The HTTP response
         """
 

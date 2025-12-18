@@ -58,7 +58,7 @@ response: tinybird.PipeJsonResponse = pipe.query({"key": "val"})
 print(response.data)
 ```
 
-### Append to a DataSource
+### Append to a data source
 
 ```python
 from verdin import tinybird
@@ -72,6 +72,19 @@ datasource = client.datasource("my_datasource", version=0)
 datasource.append([
     ("col1-row1", "col2-row1"),
     ("col1-row2", "col2-row2"),
+])
+```
+
+### Append to a data source using high-frequency ingest
+
+The `DataSource` object also gives you access to `/v0/events`, which is the high-frequency ingest, to append data.
+Use the `send_events` method and pass JSON serializable documents to it.
+
+```python
+datasource.send_events(records=[
+    {"key": "val1"},
+    {"key": "val2"},
+    ...
 ])
 ```
 
@@ -98,6 +111,58 @@ Thread(target=appender.run).start()
 
 records.put(("col1-row1", "col2-row1"))
 records.put(("col1-row2", "col2-row2"))
+```
+
+### API access
+
+The DataSource and Pipes objects presented so far are high-level abstractions that provide a convenience Python API
+to deal with the most common use cases. Verdin also provides more low-level access to APIs via `client.api`.
+The following APIs are available:
+
+* `/v0/datasources`: `client.api.datasources`
+* `/v0/events`: `client.api.events`
+* `/v0/pipes`: `client.api.pipes`
+* `/v0/tokens`: `client.api.tokens`
+* `/v0/variables`: `client.api.variables`
+
+Note that for some (datasources, pipes, tokens), manipulation operations are not implemented as they are typically done
+through tb deployments and not through the API.
+
+#### Example (Querying a pipe)
+
+You can query a pipe through the pipes API as follows:
+
+```python
+from verdin import tinybird
+
+client = tinybird.Client(...)
+
+response = client.api.pipes.query(
+    "my_pipe",
+    parameters={"my_param": "..."},
+    query="SELECT * FROM _ LIMIT 10",
+)
+
+for record in response.data:
+    # each record is a dictionary
+    ...
+```
+
+#### Example (High-frequency ingest)
+
+You can use the HFI endpoint `/v0/events` through the `events` api. As records, you can pass a list of JSON serializable
+documents.
+
+```python
+from verdin import tinybird
+
+client = tinybird.Client(...)
+
+response = client.api.events.send("my_datasource", records=[
+    {"id": "...", "value": "..."},
+    ...
+])
+assert response.quarantined_rows == 0
 ```
 
 Develop
