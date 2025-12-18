@@ -1,4 +1,5 @@
 import time
+import uuid
 from typing import Callable
 
 
@@ -37,3 +38,7 @@ def retry(
                 continue
 
     return None
+
+
+def short_id() -> str:
+    return str(uuid.uuid4())[-8:]

@@ -2,6 +2,7 @@ from .datasources import DataSourcesApi
 from .events import EventsApi
 from .pipes import PipesApi
 from .tokens import TokensApi
+from .variables import VariablesApi
 
 
 class Apis:
@@ -31,3 +32,7 @@ class Apis:
     @property
     def tokens(self) -> TokensApi:
         return TokensApi(self._token, self._host)
+
+    @property
+    def variables(self) -> VariablesApi:
+        return VariablesApi(self._token, self._host)
