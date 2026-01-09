@@ -126,6 +126,15 @@ class TestPipesApi:
         response = client.api.pipes.query("simple_pipe", parameters={"key": "does not exist"})
         assert response.data == []
 
+        # test with none parameters
+        response = client.api.pipes.query("simple_pipe", parameters={"key": None})
+        # simple check to make sure it returned all items
+        assert [(record["key"], record["value"]) for record in response.data] == [
+            ("foo", "bar"),
+            ("baz", "ed"),
+            ("foo", "bar2"),
+        ]
+
     def test_query_with_sql(self, client):
         client.api.events.send(
             "simple",

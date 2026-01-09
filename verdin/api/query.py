@@ -161,7 +161,7 @@ class QueryApi(Api):
         self,
         query: str,
         pipeline: str = None,
-        parameters: dict[str, str] = None,
+        parameters: dict[str, str | None] = None,
         output_format_json_quote_64bit_integers: bool = False,
         output_format_json_quote_denormals: bool = False,
         output_format_parquet_string_as_string: bool = False,
@@ -216,6 +216,8 @@ class QueryApi(Api):
         # this limit is around 8kb, so if it's too large, we use a POST request instead.
         qsize = 1  # include the "?" character
         for k, v in data.items():
+            if v is None:
+                continue
             qsize += len(k) + len(v) + 2  # include the ``&`` and ``=`` character
 
         if qsize > 8192 or parameters:

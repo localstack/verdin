@@ -230,7 +230,7 @@ class PipesApi(Api):
         self,
         name: str,
         query: str = None,
-        parameters: dict[str, str] = None,
+        parameters: dict[str, str | None] = None,
         format: PipeOutputFormat = "json",
     ) -> QueryPipeResponse | QueryPipeJsonResponse | QueryPipeNdjsonResponse | QueryPipeCsvResponse:
         """
@@ -256,6 +256,8 @@ class PipesApi(Api):
         # this limit is around 8kb, so if it's too large, we use a POST request instead.
         qsize = 1  # include the "?" character
         for k, v in params.items():
+            if v is None:
+                continue
             qsize += len(k) + len(v) + 2  # include the ``&`` and ``=`` character
 
         if qsize > 8192:
