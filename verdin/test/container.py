@@ -8,6 +8,8 @@ from verdin.client import Client
 
 
 class TinybirdLocalContainer:
+    # TODO: easier configuration of compatibility mode
+
     def __init__(self, cwd: str = None):
         """
         Creates a new TinybirdLocalContainer instance.

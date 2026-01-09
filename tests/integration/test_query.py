@@ -58,6 +58,19 @@ class TestQueryApi:
         assert response.rows == 1
         assert response.statistics["rows_read"] == 2
 
+    def test_query_pipe_with_none_parameters(self, client):
+        response = client.api.query.query(
+            "SELECT key, value FROM simple_pipe ORDER BY key ASC", parameters={"key": None}
+        )
+
+        assert response.data == [{"key": "baz", "value": "ed"}, {"key": "foo", "value": "bar"}]
+        assert response.meta == [
+            {"name": "key", "type": "String"},
+            {"name": "value", "type": "String"},
+        ]
+        assert response.rows == 2
+        assert response.statistics["rows_read"] == 2
+
     def test_query_pipeline_json(self, client):
         response = client.api.query.query(
             "SELECT * FROM _ ORDER BY `key` ASC", pipeline="simple_kv"
