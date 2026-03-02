@@ -147,9 +147,7 @@ class Datasource:
         :return: The HTTP response
         """
 
-        def _ndjson_iterator():
-            for record in records:
-                yield json.dumps(record) + "\n"
+        data = "".join(json.dumps(record) + "\n" for record in records)
 
         LOG.debug(
             "appending %d ndjson records to %s via %s",
@@ -160,7 +158,7 @@ class Datasource:
         response = self._datasources_api.append(
             name=self.canonical_name,
             format="ndjson",
-            data=_ndjson_iterator(),
+            data=data,
         )
 
         return response._response

@@ -44,6 +44,28 @@ class TestDatasource:
         assert response.ok
 
 
+    def test_append_ndjson(self, httpserver: HTTPServer):
+        ds = Datasource("mydatasource", "123456", api=httpserver.url_for("/"))
+
+        records = [{"key": "foo", "value": "bar"}, {"key": "baz", "value": "ed"}]
+        expected_body = '{"key": "foo", "value": "bar"}\n{"key": "baz", "value": "ed"}\n'
+
+        httpserver.expect_request(
+            "/v0/datasources",
+            query_string={
+                "name": "mydatasource",
+                "mode": "append",
+                "format": "ndjson",
+            },
+            data=expected_body,
+            headers={"Content-Length": str(len(expected_body.encode()))},
+        ).respond_with_data("", 200)
+
+        response = ds.append_ndjson(records)
+        httpserver.check()
+        assert response.ok
+
+
 class TestFileDatasource:
     def test_append(self, tmp_path):
         file_path = tmp_path / "myfile.csv"
