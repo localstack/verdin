@@ -32,11 +32,11 @@ test: venv
 test-coverage: venv
 	$(VENV_RUN); coverage run --source=verdin -m pytest tests && coverage lcov -o .coverage.lcov
 
-dist: venv
-	$(VENV_RUN); python -m build
+dist: clean-dist
+	python3 -m build
 
 install: venv
-	$(VENV_RUN); pip install -e .
+	$(VENV_RUN); pip install -e ".[dev]"
 
 upload: venv
 	$(VENV_RUN); pip install --upgrade twine; twine upload dist/*
