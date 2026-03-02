@@ -292,7 +292,7 @@ class PipesApi(Api):
         return QueryPipeResponse(response)
 
     def get_information(self, name: str) -> GetPipeInformationResponse:
-        """
+        r"""
         Makes a GET request to ``/v0/pipes/<name>`` endpoint, which returns the pipe information.
         See: https://www.tinybird.co/docs/api-reference/pipe-api#get--v0-pipes-(.+\.pipe)
 
