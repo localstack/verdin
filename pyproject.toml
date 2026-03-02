@@ -1,6 +1,6 @@
 # Verdin project configuration
 [build-system]
-requires = ['hatchling']
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -38,10 +38,14 @@ dev = [
     "pytest-cov>=2.7.1",
     "coveralls",
     "tinybird",
+    "build",
 ]
 
 [tool.hatch.version]
-path = "verdin/__init__.py"
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "verdin/version.py"
 
 [tool.ruff]
 line-length = 100
